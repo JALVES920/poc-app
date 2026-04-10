@@ -63,6 +63,6 @@ jobs:
             sudo docker rm poc-app || true
             
             # Lancement sur le port 80 (pense à ouvrir le port 80 dans AWS Security Group)
-            sudo docker run -d --name poc-app -p 80:3000 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            sudo docker run -dti --name poc-app -p 80:80 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             
             sudo docker logout ghcr.io
