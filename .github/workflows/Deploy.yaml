@@ -50,11 +50,11 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ secrets.jalves920 }}
           username: ec2-user
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          key: ${{ secrets.labsuser }}
           script: |
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo ${{ secrets.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 }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             docker stop poc-app || true
             docker rm poc-app || true
