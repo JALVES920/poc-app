@@ -50,13 +50,19 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.jalves920 }}
-          username: ec2-user
-          key: ${{ secrets.labsuser }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu  # Très probablement 'ubuntu' pour une instance AWS Ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo ${{ secrets.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 }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            docker stop poc-app || true
-            docker rm poc-app || true
-            docker run -d --name poc-app -p 80:3000 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            docker logout ghcr.io
+            # On utilise le PAT pour se connecter à GHCR depuis l'EC2
+            echo "${{ secrets.GH_PAT }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            sudo docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            
+            sudo docker stop poc-app || true
+            sudo docker rm poc-app || true
+            
+            # Lancement sur le port 80 (pense à ouvrir le port 80 dans AWS Security Group)
+            sudo docker run -d --name poc-app -p 80:3000 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            
+            sudo docker logout ghcr.io
