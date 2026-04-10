@@ -5,7 +5,7 @@ RUN apt install nodejs unzip wget npm mysql-server -y
 
 COPY resources /home/ubuntu/codebase_partner
 
-WORKDIR /home/ubuntu/codebase_partner
+WORKDIR /home/ubuntu/codebase_partner/codebase_partner
 
 RUN npm cache clean --force && npm install aws aws-sdk
 
