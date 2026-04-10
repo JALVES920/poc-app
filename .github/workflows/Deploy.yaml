@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository | downcase }}  # ← AJOUTER | downcase
 
 jobs:
   build:
@@ -54,8 +54,8 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker pull ghcr.io/${{ github.repository }}:latest
+            docker pull ghcr.io/${{ github.repository | downcase }}:latest
             docker stop poc-app || true
             docker rm poc-app || true
-            docker run -d --name poc-app -p 80:3000 ghcr.io/${{ github.repository }}:latest
+            docker run -d --name poc-app -p 80:3000 ghcr.io/${{ github.repository | downcase }}:latest
             docker logout ghcr.io
