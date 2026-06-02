@@ -7,6 +7,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: jalves920/poc-app
+  TARGET_URL: "http://3.80.221.44/" # On centralise l'IP ici pour K6
 
 jobs:
   build:
@@ -66,3 +67,40 @@ jobs:
             sudo docker run -dti --name poc-app -p 80:80 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             
             sudo docker logout ghcr.io
+
+  performance-test:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      # Petite pause de sécurité (10s) pour laisser le temps au conteneur Docker de démarrer sur l'EC2
+      - name: Wait for application startup
+        run: sleep 10
+
+      # Écriture dynamique du script de test K6 (10 VUs pendant 30 secondes)
+      - name: Create K6 Script
+        run: |
+          cat << 'EOF' > k6-script.js
+          import http from 'k6/http';
+          import { sleep } from 'k6';
+
+          export const options = {
+            vus: 10,
+            duration: '30s',
+          };
+
+          export default function () {
+            http.get('${{ env.TARGET_URL }}');
+            sleep(1);
+          }
+          EOF
+
+      # Exécution du test de charge via l'action officielle K6
+      - name: Run K6 Load Test
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: k6-script.js
