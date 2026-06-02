@@ -7,7 +7,8 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: jalves920/poc-app
-  TARGET_URL: "http://3.80.221.44/" # On centralise l'IP ici pour K6
+  # Mise à jour avec ta nouvelle adresse IP pour le test K6
+  TARGET_URL: "http://34.227.205.143"
 
 jobs:
   build:
@@ -52,10 +53,9 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ubuntu  # Très probablement 'ubuntu' pour une instance AWS Ubuntu
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # On utilise le PAT pour se connecter à GHCR depuis l'EC2
             echo "${{ secrets.GH_PAT }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
             sudo docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
@@ -63,7 +63,6 @@ jobs:
             sudo docker stop poc-app || true
             sudo docker rm poc-app || true
             
-            # Lancement sur le port 80 (pense à ouvrir le port 80 dans AWS Security Group)
             sudo docker run -dti --name poc-app -p 80:80 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             
             sudo docker logout ghcr.io
@@ -77,11 +76,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      # Petite pause de sécurité (10s) pour laisser le temps au conteneur Docker de démarrer sur l'EC2
       - name: Wait for application startup
         run: sleep 10
 
-      # Écriture dynamique du script de test K6 (10 VUs pendant 30 secondes)
       - name: Create K6 Script
         run: |
           cat << 'EOF' > k6-script.js
@@ -99,7 +96,6 @@ jobs:
           }
           EOF
 
-      # Exécution du test de charge via l'action officielle K6
       - name: Run K6 Load Test
         uses: grafana/k6-action@v0.3.1
         with:
